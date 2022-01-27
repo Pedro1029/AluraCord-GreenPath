@@ -31,7 +31,6 @@ function IndexPage() {
         const response = await fetch(url);
         const resultado = await response.json();
         setLocation(resultado)
-        console.log(location.message)
 
     }
 

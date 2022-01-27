@@ -1,47 +1,13 @@
 import { Box, Button, Text, TextField, Image } from '@skynexui/components';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import appConfig from '../config.json'
 
-function GlobalStyle() {
-
-    return (
-        <style global jsx>{`
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        list-style: none;
-      }
-      body {
-        font-family: 'Open Sans', sans-serif;
-      }
-      /* App fit Height */
-      html, body, #__next {
-        min-height: 100vh;
-        display: flex;
-        flex: 1;
-      }
-      #__next {
-        flex: 1;
-      }
-      #__next > * {
-        flex: 1;
-      }
-      /* ./App fit Height */
-    `}</style>
-
-
-    )
-
-}
-
 function Title(props) {
-    console.log(props);
     const Tag = props.tag;
     return (
         <>
             <Tag>{props.children} </Tag>
-            {/* o style jsx esta gerenciando os estilos */}
             <style jsx>{`
         ${Tag} {
           color: ${appConfig.theme.colors.neutrals['000']};
@@ -53,20 +19,39 @@ function Title(props) {
     );
 };
 
-function HomePage() {
+function IndexPage() {
     const [username, setUsername] = useState('Pedro1029');
+    const [location, setLocation] = useState('');
+    const [showImage, setShowImage] = useState(false);
+    const roteador = useRouter();
+
+    async function teste() {
+
+        const url = `https://api.github.com/users/${username}`
+        const response = await fetch(url);
+        const resultado = await response.json();
+        setLocation(resultado)
+        console.log(location.message)
+
+    }
+
+    useEffect(() => {
+        teste()
+        if (location.message === undefined) {
+            setShowImage(true)
+        } else {
+            setShowImage(false)
+        }
+    }, [username])
+
 
     return (
         <>
-            <GlobalStyle />
-
             <Box
                 styleSheet={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: appConfig.theme.colors.primary[500],
-                    backgroundImage: 'url(http://pm1.narvii.com/6905/d280e6dd0a2e942c635a4d0578ded284b40b37e0r1-2048-1458v2_uhq.jpg)',
-                    backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundBlendMode: 'multiply',
-                  }}
+
+                }}
             >
 
                 <Box
@@ -85,13 +70,18 @@ function HomePage() {
                         flexDirection: {
                             xs: 'column',
                             sm: 'row',
-                          },
+                        },
 
                     }}
 
                 >
                     <Box
+                        as="form"
+                        onSubmit={function (event) {
 
+                            event.preventDefault();
+                            roteador.push("/home")
+                        }}
                         styleSheet={{
                             display: 'flex',
                             flexDirection: 'column',
@@ -99,7 +89,7 @@ function HomePage() {
                             justifyContent: 'center',
                             width: { xs: '100%', sm: '50%' },
                             textAlign: 'center',
-                            
+
                             marginBottom: '32px',
 
                         }}
@@ -113,7 +103,7 @@ function HomePage() {
                             onChange={function (event) {
                                 const valor = event.target.value;
                                 setUsername(valor);
-                              }}
+                            }}
                             fullWidth
                             textFieldColors={{
                                 neutral: {
@@ -138,37 +128,76 @@ function HomePage() {
                         />
                     </Box>
 
-                    <Box
-                    styleSheet={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        maxWidth: '200px',
-                        padding: '16px',
-                        borderRadius: '10px',
-                        flex: 1,
-                        minHeight: '240px',
-                    }}
-                >
-                    <Image
-                        styleSheet={{
-                            borderRadius: '50%',
-                            marginBottom: '16px',
-                        }}
-                        src={`https://github.com/${username}.png`}
-                    />
-                    <Text
-                        variant="body4"
-                        styleSheet={{
-                            color: appConfig.theme.colors.neutrals[200],
-                            backgroundColor: appConfig.theme.colors.neutrals[900],
-                            padding: '3px 10px',
-                            borderRadius: '1000px'
-                        }}
-                    >
-                        {username}
-                    </Text>
-                </Box>
+                    {showImage &&
+                        <Box
+                            styleSheet={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                maxWidth: '200px',
+                                padding: '16px',
+                                borderRadius: '10px',
+                                flex: 1,
+                                minHeight: '240px',
+                            }}
+                        >
+
+                            <Image
+                                styleSheet={{
+                                    borderRadius: '50%',
+                                    marginBottom: '16px',
+                                }}
+                                src={`https://github.com/${username}.png`}
+                            />
+                            <Box
+                                styleSheet={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                }}
+
+                            >
+                                <Text
+                                    variant="body4"
+                                    styleSheet={{
+                                        textAlign: 'center',
+                                        color: appConfig.theme.colors.neutrals[200],
+                                        backgroundColor: appConfig.theme.colors.neutrals[900],
+                                        padding: '3px 10px',
+                                        margin: '5px',
+                                        borderRadius: '1000px'
+                                    }}
+                                >
+                                    {username}
+                                </Text>
+                                <Text
+                                    variant="body4"
+                                    styleSheet={{
+                                        textAlign: 'center',
+                                        color: appConfig.theme.colors.neutrals[200],
+                                        backgroundColor: appConfig.theme.colors.neutrals[900],
+                                        padding: '3px 10px',
+                                        margin: '5px',
+                                        borderRadius: '1000px'
+                                    }}
+                                >
+                                    {location.location}
+                                </Text>
+                                <Text
+                                    variant="body4"
+                                    styleSheet={{
+                                        textAlign: 'center',
+                                        color: appConfig.theme.colors.neutrals[200],
+                                        backgroundColor: appConfig.theme.colors.neutrals[900],
+                                        padding: '3px 10px',
+                                        margin: '5px',
+                                        borderRadius: '1000px'
+                                    }}
+                                >
+                                    {location.company}
+                                </Text>
+                            </Box>
+
+                        </Box>}
                 </Box>
             </Box>
 
@@ -179,4 +208,4 @@ function HomePage() {
     )
 }
 
-export default HomePage
+export default IndexPage

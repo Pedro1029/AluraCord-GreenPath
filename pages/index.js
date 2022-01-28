@@ -13,6 +13,7 @@ function Title(props) {
           color: ${appConfig.theme.colors.neutrals['000']};
           font-size: 24px;
           font-weight: 600;
+          text-align: center;
         }
         `}</style>
         </>
@@ -20,27 +21,34 @@ function Title(props) {
 };
 
 function IndexPage() {
-    const [username, setUsername] = useState('Pedro1029');
+    const [username, setUsername] = useState('');
     const [location, setLocation] = useState('');
     const [showImage, setShowImage] = useState(false);
+    const [texto, setTexto] = useState('Digite um usuário!');
     const roteador = useRouter();
 
     async function teste() {
 
-        const url = `https://api.github.com/users/${username}`
-        const response = await fetch(url);
-        const resultado = await response.json();
-        setLocation(resultado)
-
+        if (username == '') {
+            setTexto('Digite um usuário!')
+            setShowImage(false);
+        } else {
+            const url = `https://api.github.com/users/${username}`
+            const response = await fetch(url);
+            if (!response.ok) {
+                setShowImage(false);
+                setTexto('Usuario não Encontrado!')
+            } else {
+                setShowImage(true);
+            }
+            const resultado = await response.json();
+            setLocation(resultado)
+            //console.log(resultado)
+        }
     }
 
     useEffect(() => {
         teste()
-        if (location.message === undefined) {
-            setShowImage(true)
-        } else {
-            setShowImage(false)
-        }
     }, [username])
 
 
@@ -79,7 +87,7 @@ function IndexPage() {
                         onSubmit={function (event) {
 
                             event.preventDefault();
-                            roteador.push("/home")
+                            roteador.push("/chat")
                         }}
                         styleSheet={{
                             display: 'flex',
@@ -99,7 +107,8 @@ function IndexPage() {
                         </Text>
 
                         <TextField
-                            onChange={function (event) {
+                            placeholder='Usuário'
+                            onChange={(event) => {
                                 const valor = event.target.value;
                                 setUsername(valor);
                             }}
@@ -117,16 +126,15 @@ function IndexPage() {
                             type='submit'
                             label='Entrar'
                             fullWidth
+                            disabled={!showImage}
                             buttonColors={{
                                 contrastColor: appConfig.theme.colors.neutrals["000"],
                                 mainColor: appConfig.theme.colors.primary[700],
                                 mainColorLight: appConfig.theme.colors.primary[400],
                                 mainColorStrong: appConfig.theme.colors.primary[600],
-
                             }}
                         />
                     </Box>
-
                     {showImage &&
                         <Box
                             styleSheet={{
@@ -140,7 +148,6 @@ function IndexPage() {
                                 minHeight: '240px',
                             }}
                         >
-
                             <Image
                                 styleSheet={{
                                     borderRadius: '50%',
@@ -148,6 +155,7 @@ function IndexPage() {
                                 }}
                                 src={`https://github.com/${username}.png`}
                             />
+
                             <Box
                                 styleSheet={{
                                     display: 'flex',
@@ -197,6 +205,24 @@ function IndexPage() {
                             </Box>
 
                         </Box>}
+
+                    {!showImage &&
+                        <Box
+                            styleSheet={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                maxWidth: '200px',
+                                padding: '16px',
+                                borderRadius: '10px',
+                                flex: 1,
+                                minHeight: '240px',
+                            }}
+                        >
+                            <Title tag="h2">{texto}</Title>
+
+                        </Box>
+                    }
                 </Box>
             </Box>
 

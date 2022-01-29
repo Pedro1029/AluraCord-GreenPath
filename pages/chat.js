@@ -1,22 +1,64 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import appConfig from '../config.json';
+import { createClient } from '@supabase/supabase-js'
+import { useRouter } from 'next/router';
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker'
+
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzQwOTA1MywiZXhwIjoxOTU4OTg1MDUzfQ.MgYotE9wqABZd3NHaMOFQuRjXHYKQIoKgEWjyqhLZeQ'
+const SUPABASE_URL = 'https://pekczffjimmqdwdxtjwj.supabase.co'
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+
+
+function realTimeMessage(addMensagem) {
+
+    console.log('escutei')
+    return supabaseClient
+        .from('mensagens')
+        .on('INSERT', (msgAtt) => {
+            addMensagem(msgAtt.new);
+        })
+        .subscribe()
+}
 
 export default function ChatPage() {
 
+    const roteador = useRouter();
+    const username = roteador.query.username
     const [mensagem, setMensagem] = useState('')
-    const [chat, setChat] = useState([])
+    const [mensagens, setMensagens] = useState([])
+
+    useEffect(() => {
+        supabaseClient
+            .from('mensagens')
+            .select('*')
+            .order('id', { ascending: false })
+            .then(({ data }) => {
+                setMensagens(data)
+            })
+
+        realTimeMessage((novaMensagem) => {
+            setMensagens((ValorAtualDaLista) => {
+                return  [novaMensagem, ...ValorAtualDaLista]
+            })
+        })
+    }, [])
 
     function handleNewMessage(newMensagem) {
 
         const mensagem = {
-            id: chat.length,
-            de: 'Pedro',
+            de: username,
             texto: newMensagem,
 
         }
 
-        setChat([mensagem, ...chat])
+        supabaseClient
+            .from('mensagens')
+            .insert([mensagem])
+            .then(({ data }) => {
+                
+            })
         setMensagem('')
     }
 
@@ -58,13 +100,7 @@ export default function ChatPage() {
                     }}
                 >
 
-                    <MessageList mensagens={chat} />
-
-                    {chat.map((mensagem) => {
-                        <li key={mensagem.id}>
-                            {mensagem.texto}
-                        </li>
-                    })}
+                    <MessageList mensagens={mensagens} />
 
                     <Box
                         as="form"
@@ -114,6 +150,11 @@ export default function ChatPage() {
                                 mainColorStrong: appConfig.theme.colors.primary[600],
                             }}
                         />
+                        <ButtonSendSticker
+                            onStickerClick={(sticker) => {
+                                handleNewMessage(':sticker:' + sticker)
+                            }}
+                        />
                     </Box>
                 </Box>
 
@@ -157,13 +198,11 @@ function Header() {
 
 function MessageList(props) {
 
-    console.log(props.mensagens)
-
     return (
         <Box
             tag="ul"
             styleSheet={{
-                overflow: 'hidden',
+                overflow: 'auto',
                 display: 'flex',
                 flexDirection: 'column-reverse',
                 flex: 1,
@@ -199,7 +238,7 @@ function MessageList(props) {
                                     display: 'inline-block',
                                     marginRight: '8px',
                                 }}
-                                src={`https://github.com/Pedro1029.png`}
+                                src={`https://github.com/${mensagem.de}.png`}
                             />
                             <Text tag="strong">
                                 {mensagem.de}
@@ -216,7 +255,7 @@ function MessageList(props) {
                             </Text>
                             <Button
                                 onClick={() => {
-                                    
+
                                 }}
                                 label='x'
                                 buttonColors={{
@@ -227,7 +266,14 @@ function MessageList(props) {
                                 }}
                             />
                         </Box>
-                        {mensagem.texto}
+                        {mensagem.texto.startsWith(':sticker:')
+                            ? (
+                                <Image src={mensagem.texto.replace(':sticker:', '')} />
+                            )
+                            : (
+                                mensagem.texto
+                            )
+                        }
                     </Text>
                 )
 

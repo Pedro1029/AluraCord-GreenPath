@@ -43,7 +43,6 @@ function IndexPage() {
             }
             const resultado = await response.json();
             setLocation(resultado)
-            //console.log(resultado)
         }
     }
 
@@ -85,9 +84,8 @@ function IndexPage() {
                     <Box
                         as="form"
                         onSubmit={function (event) {
-
                             event.preventDefault();
-                            roteador.push("/chat")
+                            roteador.push(`/chat?username=${username}`)
                         }}
                         styleSheet={{
                             display: 'flex',

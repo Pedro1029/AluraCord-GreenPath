@@ -227,6 +227,7 @@ function MessageList(props) {
                         <Box
                             styleSheet={{
                                 marginBottom: '8px',
+                                display: 'flex',
                             }}
                         >
 
